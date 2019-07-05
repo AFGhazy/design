@@ -7,8 +7,8 @@ const val INVALID_TIME = -1L
 fun main(args : Array<String>) { 
 	val bus: Bus = Bus("1")
 	val bus2: Bus = Bus("2")
-	val floor1 = Floor(List<Spot>(4) { Spot(VehicleType.Normal) })
-	val floor2 = Floor(List<Spot>(4) { Spot(VehicleType.Electric) })
+	val floor1 = Floor(List<Spot>(4) { Spot(Type.Normal) })
+	val floor2 = Floor(List<Spot>(4) { Spot(Type.Electric) })
 	val parkingLot = ParkingLot(listOf(floor1, floor2))
 	
 	println(parkingLot)
@@ -21,57 +21,57 @@ fun main(args : Array<String>) {
 	println(parkingLot.pay(parkingLot.leave(bus2), PaymentMethod.CASH, null, 18000))
 }
 
-enum class VehicleSize(val numOfSpots: Int) {
+enum class Size(val numOfSpots: Int) {
 	Motor(1), Compact(1), Large(4);
 }
 
-enum class VehicleType(val compatable: List<VehicleType>) {
+enum class Type(val alsoCanUse: List<Type>) {
 	Electric(emptyList()),
 	Access(emptyList()),
-	Normal(listOf(VehicleType.Electric, VehicleType.Access));
+	Normal(listOf(Type.Electric, Type.Access));
 }
 
-data class Spot(val vehicleType: VehicleType, var vehicle: Vehicle? = null) {}
+data class Spot(val type: Type, var vehicle: Vehicle? = null) {}
 
 abstract class Vehicle(val licensePlate: String,
-					   val vehicleSize: VehicleSize,
-					   val vehicleType: VehicleType) {
+					   val size: Size,
+					   val vehicleType: Type) {
 	var spots: List<Spot>? = null
 	
 	override fun toString(): String {
-		return "[" + licensePlate + " " + vehicleSize + " " + vehicleType + "]"
+		return "[" + licensePlate + " " + size + " " + vehicleType + "]"
 	}
 }
 
 class Motor(licensePlate: String) :
-	Vehicle(licensePlate, VehicleSize.Motor, VehicleType.Normal)
+	Vehicle(licensePlate, Size.Motor, Type.Normal)
 
 class Car(licensePlate: String) :
-	Vehicle(licensePlate, VehicleSize.Compact, VehicleType.Normal)
+	Vehicle(licensePlate, Size.Compact, Type.Normal)
 
 class ElectricCar(licensePlate: String) :
-	Vehicle(licensePlate, VehicleSize.Compact, VehicleType.Electric)
+	Vehicle(licensePlate, Size.Compact, Type.Electric)
 
 class AccessCar(licensePlate: String) :
-	Vehicle(licensePlate, VehicleSize.Compact, VehicleType.Access)
+	Vehicle(licensePlate, Size.Compact, Type.Access)
 
 class Bus(licensePlate: String) :
-	Vehicle(licensePlate, VehicleSize.Large, VehicleType.Normal)
+	Vehicle(licensePlate, Size.Large, Type.Normal)
 
 
 data class Floor(val spots: List<Spot>) {
 	fun park(vehicle: Vehicle): Long {
-		for(i in 0 .. spots.size - vehicle.vehicleSize.numOfSpots) {
+		for(i in 0 .. spots.size - vehicle.size.numOfSpots) {
 			var numOfSpots = 0
-			for(j in i until i + vehicle.vehicleSize.numOfSpots) {
+			for(j in i until i + vehicle.size.numOfSpots) {
 				numOfSpots += if (spots.get(j).vehicle == null &&
-					(vehicle.vehicleType == spots.get(j).vehicleType ||
-						 spots.get(j).vehicleType in vehicle.vehicleType.compatable)) 1 else 0
+					(vehicle.vehicleType == spots.get(j).type ||
+						 spots.get(j).type in vehicle.vehicleType.alsoCanUse)) 1 else 0
 			}
 			
-			if(numOfSpots == vehicle.vehicleSize.numOfSpots) {
+			if(numOfSpots == vehicle.size.numOfSpots) {
 				val list = mutableListOf<Spot>()
-				for(j in i until i + vehicle.vehicleSize.numOfSpots) {
+				for(j in i until i + vehicle.size.numOfSpots) {
 					spots.get(j).vehicle = vehicle
 					list.add(spots.get(j))
 				}
